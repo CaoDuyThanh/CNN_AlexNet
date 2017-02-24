@@ -11,6 +11,7 @@ class ConvPoolLayer:
                  inputShape,            # Shape of input = [batch size, channels, rows, cols]
                  filterShape,           # Shape of filter = [number of filters, channels, rows, cols]
                  poolingShape = (2, 2), # Shape of pooling (2, 2) default
+                 subsample = (1, 1),    # Filter stride
                  W = None
                  ):
         # Set parameters
@@ -18,6 +19,7 @@ class ConvPoolLayer:
         self.InputShape = inputShape
         self.FilterShape = filterShape
         self.PoolingShape = poolingShape
+        self.Subsample = subsample
 
         # Create shared parameters for filters
         if W is None:
@@ -40,6 +42,7 @@ class ConvPoolLayer:
             input_shape = (self.InputShape),
             filters = self.W,
             filter_shape = self.FilterShape,
+            subsample = self.Subsample
         )
 
         self.poolLayer = pool_2d(
