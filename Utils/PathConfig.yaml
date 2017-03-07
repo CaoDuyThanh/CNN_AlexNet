@@ -1,14 +1,13 @@
 
 # TRAIN AND VALID DATASET LOCATION
-TRAIN_IMG_DIR: 'lsvrc_2014/ILSVRC2012_img_train/'
-VALID_IMG_DIR: 'lsvrc_2014/ILSVRC2012_img_val/'
-
-
-# TARGET DIRECTORY
+TRAIN_IMG_DIR: '../Dataset/Train/'
+VALID_IMG_DIR: '../Dataset/Val/'
+TEST_IMG_DIR: '../Dataset/Test/'
 
 
 
 # CAFFE STYLE TRAIN AND VALIDATION LABELS
-TRAIN_FILENAM: '../train_path.txt'
-VALID_FILENAME: '../valid_path.txt'
+TRAIN_DATA_FILENAME:         './dataset_metadata/train.txt'
+VALID_DATA_FILENAME:         './dataset_metadata/valid.txt'
+TEST_DATA_FILENAME:          './dataset_metadata/test.txt'
 
