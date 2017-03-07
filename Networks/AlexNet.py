@@ -140,14 +140,14 @@ def evaluateAlexNet():
     softmaxLayer0Output = softmaxLayer0.Output()
 
     # List of params from model
-    params = hidLayer2Params + \
-             hidLayer1Params + \
-             hidLayer0Params + \
-             convPoolLayer4Params + \
-             convPoolLayer3Params + \
-             convPoolLayer2Params + \
+    params = convPoolLayer0Params + \
              convPoolLayer1Params + \
-             convPoolLayer0Params
+             convPoolLayer2Params + \
+             convPoolLayer3Params + \
+             convPoolLayer4Params + \
+             hidLayer0Params + \
+             hidLayer1Params + \
+             hidLayer2Params
 
     # Evaluate model - using early stopping
     # Define cost function = Regularization + Cross entropy of softmax
