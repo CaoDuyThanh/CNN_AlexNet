@@ -7,9 +7,9 @@ import pickle
 
 class DatasetHelper:
     def __init__(self,
-                 trainFilePath,
-                 validFilePath,
-                 testFilePath):
+                 trainFilePath = None,
+                 validFilePath = None,
+                 testFilePath = None):
         self.TrainFilePath = trainFilePath
         self.ValidFilePath = validFilePath
         self.TestFilePath = testFilePath
@@ -29,12 +29,15 @@ class DatasetHelper:
         return allData
 
     def loadTrainFile(self):
-        allSamples = self.loadDataFromFile(self.TrainFilePath)
-        self.AllTrainData = []
+        if self.TrainFilePath is not None:
+            allSamples = self.loadDataFromFile(self.TrainFilePath)
+            self.AllTrainData = []
 
-        for sample in allSamples:
-            if (sample != ''):
-                self.AllTrainData.append(sample.split(' '))
+            for sample in allSamples:
+                if (sample != ''):
+                    splitSample = sample.strip().split(' ')
+                    splitSample[1] = int(splitSample[1])
+                    self.AllTrainData.append(splitSample)
 
     def NextTrainBatch(self, batchSize):
         if (self.IndexTrain + batchSize >= self.AllTrainData.__len__()):
@@ -46,17 +49,21 @@ class DatasetHelper:
             self.IndexTrain = (self.IndexTrain + batchSize) % self.AllTrainData.__len__()
 
     def loadValidFile(self):
-        allSamples = self.loadDataFromFile(self.ValidFilePath)
-        self.AllValidData = []
+        if self.ValidFilePath is not None:
+            allSamples = self.loadDataFromFile(self.ValidFilePath)
+            self.AllValidData = []
 
-        for sample in allSamples:
-            if (sample != ''):
-                self.AllValidData.append(sample.split(' '))
+            for sample in allSamples:
+                if (sample != ''):
+                    splitSample = sample.strip().split(' ')
+                    splitSample[1] = int(splitSample[1])
+                    self.AllValidData.append(splitSample)
 
     def loadTestFile(self):
-        allSamples = self.loadDataFromFile(self.TestFilePath)
-        self.AllTestData = []
+        if self.TestFilePath is not None:
+            allSamples = self.loadDataFromFile(self.TestFilePath)
+            self.AllTestData = []
 
-        for sample in allSamples:
-            if (sample != ''):
-                self.AllTestData.append(sample.split(' '))
+            for sample in allSamples:
+                if (sample != ''):
+                    self.AllTestData.append(sample.split(' '))
