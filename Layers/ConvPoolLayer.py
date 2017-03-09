@@ -1,5 +1,5 @@
 import theano
-import theano.tensor
+import theano.tensor as T
 import numpy
 from theano.tensor.nnet import conv2d
 from theano.tensor.signal.pool import pool_2d
@@ -10,50 +10,59 @@ class ConvPoolLayer:
                  input,                 # Data
                  inputShape,            # Shape of input = [batch size, channels, rows, cols]
                  filterShape,           # Shape of filter = [number of filters, channels, rows, cols]
-                 poolingShape = (2, 2), # Shape of pooling (2, 2) default
                  subsample = (1, 1),    # Filter stride
-                 W = None
+                 poolingShape = None,   # Shape of pooling (2, 2) default
+                 W = None,
+                 activation = T.tanh
                  ):
         # Set parameters
+        self.Rng = rng
         self.Input = input
         self.InputShape = inputShape
         self.FilterShape = filterShape
         self.PoolingShape = poolingShape
         self.Subsample = subsample
+        self.W = W
+        self.Activation = activation
 
+        self.createModel()
+
+    def createModel(self):
         # Create shared parameters for filters
-        if W is None:
+        if self.W is None:
+            fanIn = numpy.prod(self.FilterShape[1:])
+            fanOut = (self.FilterShape[0] * numpy.prod(self.FilterShape[2:]) // numpy.prod(self.Subsample))
+            wBound = numpy.sqrt(6. / (fanIn + fanOut))
             self.W = theano.shared(
                 numpy.asarray(
-                    rng.uniform(
-                        low = -1.0,
-                        high = 1.0,
+                    self.Rng.uniform(
+                        low  = -wBound,
+                        high =  wBound,
                         size = self.FilterShape
                     ),
-                    dtype = theano.config.floatX
+                    dtype=theano.config.floatX
                 ),
                 borrow=True
             )
-        else:
-            self.W = W
 
         convLayer = conv2d(
-            input = self.Input,
-            input_shape = (self.InputShape),
-            filters = self.W,
+            input        = self.Input,
+            input_shape  = self.InputShape,
+            filters      = self.W,
             filter_shape = self.FilterShape,
-            subsample = self.Subsample
+            subsample    = self.Subsample,
+            border_mode  = 'full'
         )
 
-        self.poolLayer = pool_2d(
-            input = convLayer,
-            ds = self.PoolingShape,
-            ignore_border = True
-        )
+        if self.PoolingShape is not None:
+            poolLayer = pool_2d(
+                input         = convLayer,
+                ds            = self.PoolingShape,
+                ignore_border = True
+            )
+            self.Output = poolLayer
+        else:
+            self.Output = convLayer
 
-    def Params(self):
-        return [self.W]
+        self.Params = [self.W]
 
-
-    def Output(self):
-        return self.poolLayer
