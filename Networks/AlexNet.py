@@ -19,7 +19,7 @@ SAVE_MODEL          = paths['SAVE_MODEL']
 
 # OTHER SETTINGS
 VALIDATION_FREQUENCY  = 500
-VISUALIZE_FREQUENCY   = 500
+VISUALIZE_FREQUENCY   = 2
 
 # TRAINING PARAMETERS
 NUM_ITERATION = 20000
@@ -101,6 +101,7 @@ def evaluateAlexNet():
         input       = convPoolLayer0Output,
         inputShape  = (BATCH_SIZE, 96, 55, 55),
         filterShape = (256, 96, 5, 5),
+        borderMode  = 2,
         poolingShape = (2, 2)
     )
     convPoolLayer1Params = convPoolLayer1.Params
@@ -111,7 +112,8 @@ def evaluateAlexNet():
         rng         = rng,
         input       = convPoolLayer1Output,
         inputShape  = (BATCH_SIZE, 256, 27, 27),
-        filterShape = (384, 256, 3, 3)
+        filterShape = (384, 256, 3, 3),
+        borderMode  = 1
     )
     convPoolLayer2Params = convPoolLayer2.Params
     convPoolLayer2Output = convPoolLayer2.Output
@@ -121,7 +123,8 @@ def evaluateAlexNet():
         rng         = rng,
         input       = convPoolLayer2Output,
         inputShape  = (BATCH_SIZE, 384, 13, 13),
-        filterShape = (384, 384, 3, 3)
+        filterShape = (384, 384, 3, 3),
+        borderMode  = 1
     )
     convPoolLayer3Params = convPoolLayer3.Params
     convPoolLayer3Output = convPoolLayer3.Output
@@ -132,19 +135,20 @@ def evaluateAlexNet():
         input       = convPoolLayer3Output,
         inputShape  = (BATCH_SIZE, 384, 13, 13),
         filterShape = (256, 384, 3, 3),
+        borderMode  = 1,
         poolingShape = (2, 2)
     )
     convPoolLayer4Params = convPoolLayer4.Params
     convPoolLayer4Output = convPoolLayer4.Output
-    convPoolLayer4OutputRes = convPoolLayer4Output.reshape((BATCH_SIZE, 256 * 13 * 13))
+    convPoolLayer4OutputRes = convPoolLayer4Output.reshape((BATCH_SIZE, 256 * 6 * 6))
 
     # Hidden layer 0
     hidLayer0 = HiddenLayer(
         rng        = rng,
         input      = convPoolLayer4OutputRes,
-        numIn      = 256 * 13 * 13,
+        numIn      = 256 * 6 * 6,
         numOut     = 4096,
-        activation = T.nnet.relu
+        activation = T.nnet.sigmoid
     )
     hidLayer0Params = hidLayer0.Params
     hidLayer0Output = hidLayer0.Output
@@ -155,7 +159,7 @@ def evaluateAlexNet():
         input      = hidLayer0Output,
         numIn      = 4096,
         numOut     = 4096,
-        activation = T.nnet.relu
+        activation = T.nnet.sigmoid
     )
     hidLayer1Params = hidLayer1.Params
     hidLayer1Output = hidLayer1.Output
@@ -233,9 +237,9 @@ def evaluateAlexNet():
         if (iter % VISUALIZE_FREQUENCY == 0):
             print('Epoch = %d, iteration = %d, cost = %f' % (epochTrain, iter, cost))
 
-        if (iter % VALIDATION_FREQUENCY == 0):
+        if (iter % VALIDATION_FREQUENCY == 10):
             print('Validate model....')
-            epochValid = Dataset.GetEpochValid()
+            epochValid = Dataset.EpochValid
             err = 0; numValidSamples = 0
             while epochValid == 0:
                 [subData, labels] = Dataset.NextValidBatch(BATCH_SIZE)
