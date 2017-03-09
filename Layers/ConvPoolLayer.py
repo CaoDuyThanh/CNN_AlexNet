@@ -10,6 +10,7 @@ class ConvPoolLayer:
                  input,                 # Data
                  inputShape,            # Shape of input = [batch size, channels, rows, cols]
                  filterShape,           # Shape of filter = [number of filters, channels, rows, cols]
+                 borderMode = 'valid',  # Padding border with zeros
                  subsample = (1, 1),    # Filter stride
                  poolingShape = None,   # Shape of pooling (2, 2) default
                  W = None,
@@ -20,6 +21,7 @@ class ConvPoolLayer:
         self.Input = input
         self.InputShape = inputShape
         self.FilterShape = filterShape
+        self.BorderMode = borderMode
         self.PoolingShape = poolingShape
         self.Subsample = subsample
         self.W = W
@@ -51,7 +53,8 @@ class ConvPoolLayer:
             filters      = self.W,
             filter_shape = self.FilterShape,
             subsample    = self.Subsample,
-            border_mode  = 'full'
+            border_mode  = self.BorderMode
+
         )
 
         if self.PoolingShape is not None:
