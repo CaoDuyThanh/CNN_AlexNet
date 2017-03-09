@@ -4,7 +4,8 @@ TRAIN_IMG_DIR: '../Dataset/Train/'
 VALID_IMG_DIR: '../Dataset/Val/'
 TEST_IMG_DIR: '../Dataset/Test/'
 
-
+# SAVE FILES LOCATION
+SAVE_MODEL: '../Pretrained/Model.pkl'
 
 # CAFFE STYLE TRAIN AND VALIDATION LABELS
 TRAIN_DATA_FILENAME:         './dataset_metadata/train.txt'
