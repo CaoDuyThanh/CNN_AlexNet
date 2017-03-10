@@ -29,6 +29,21 @@ TRAIN_DATA_FILENAME         = paths['TRAIN_DATA_FILENAME']
 VALID_DATA_FILENAME         = paths['VALID_DATA_FILENAME']
 TEST_DATA_FILENAME          = paths['TEST_DATA_FILENAME']
 
+SYNSETS         = paths['SYNSETS']
+
+################################
+#     Load synsets             #
+################################
+file = open(SYNSETS)
+allSynsets = tuple(file)
+allSynsets = [synset.strip().split(' ') for synset in allSynsets]
+file.close()
+
+def FindLabelFromSynset(folderName):
+    for idx in range(allSynsets.__len__()):
+        if allSynsets[idx][0] == folderName:
+            return idx + 1
+
 
 ################################
 #     Training dataset         #
@@ -39,13 +54,14 @@ allTrainFiles = []
 allTrainFilesLabelNumber = []
 allTrainFilesLabelText = []
 for idx, trainDir in enumerate(sortedTrainDirs):
-    label = trainDir.split('/')[-1]
+    labelName = trainDir.split('/')[-1]
+    labelNum  = FindLabelFromSynset(labelName)
     sortedTrainFiles = sorted([join(abspath(trainDir), name) for name in listdir(trainDir)
                               if isfile(join(trainDir, name))])
     allTrainFiles.extend(sortedTrainFiles)
     for i in range(len(sortedTrainFiles)):
-        allTrainFilesLabelNumber.append(idx)
-        allTrainFilesLabelText.append(label)
+        allTrainFilesLabelNumber.append(labelNum)
+        allTrainFilesLabelText.append(labelName)
 
 # Random data before save
 newIdx = list(range(len(allTrainFiles)))
