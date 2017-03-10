@@ -18,8 +18,8 @@ TEST_DATA_FILENAME  = paths['TEST_DATA_FILENAME']
 SAVE_MODEL          = paths['SAVE_MODEL']
 
 # OTHER SETTINGS
-VALIDATION_FREQUENCY  = 500
-VISUALIZE_FREQUENCY   = 2
+VALIDATION_FREQUENCY  = 2500
+VISUALIZE_FREQUENCY   = 50
 
 # TRAINING PARAMETERS
 NUM_ITERATION = 20000
@@ -175,6 +175,14 @@ def evaluateAlexNet():
     hidLayer2Params = hidLayer2.Params
     hidLayer2Output = hidLayer2.Output
 
+    Layers = [convPoolLayer0,
+              convPoolLayer1,
+              convPoolLayer2,
+              convPoolLayer3,
+              convPoolLayer4,
+              hidLayer0,
+              hidLayer1,
+              hidLayer2]
     Output = hidLayer2Output
 
     ####################################
@@ -227,6 +235,7 @@ def evaluateAlexNet():
     bestError = 10
 
     startTime = timeit.default_timer()
+    timeVisualize = timeit.default_timer()
     for iter in range(NUM_ITERATION):
         # Load data
         [subData, labels] = Dataset.NextTrainBatch(BATCH_SIZE)
@@ -236,18 +245,27 @@ def evaluateAlexNet():
         cost = trainFunc(subData, labels, dynamicLearningRate)
 
         if (iter % VISUALIZE_FREQUENCY == 0):
-            print('Epoch = %d, iteration = %d, cost = %f' % (epochTrain, iter, cost))
+            oldTimeVisualize = timeVisualize
+            timeVisualize = timeit.default_timer()
+            print('Epoch = %d, iteration = %d, cost = %f. Time remain = %f' % (epochTrain, iter, cost, (timeVisualize - oldTimeVisualize) / 60. * (NUM_ITERATION - iter) / VISUALIZE_FREQUENCY))
 
         if (iter % VALIDATION_FREQUENCY == 0):
             print('Validate model....')
             epochValid = Dataset.EpochValid
-            err = 0; numValidSamples = 0
+            err = 0; numValidSamples = 0; validIter = 0
+
+            validStart = timeit.default_timer()
             while epochValid == 0:
+                validIter += 1
                 [subData, labels] = Dataset.NextValidBatch(BATCH_SIZE)
                 err += testFunc(subData, labels)
                 numValidSamples += BATCH_SIZE
+                epochValid = Dataset.EpochValid
+                if validIter % VISUALIZE_FREQUENCY == 0:
+                    print ('     Iterations = %d, NumValidSamples = %d' % (validIter, numValidSamples))
             err /= numValidSamples
-            print('Error = ', err)
+            validEnd = timeit.default_timer()
+            print('Validation complete! Time validation = %f mins. Error = %f (previous best error = %f)' % ((validEnd - validStart) / 60., err, bestError))
 
             if (err < bestError):
                 if (err < bestError * IMPROVEMENT_THRESHOLD):
@@ -255,6 +273,9 @@ def evaluateAlexNet():
                 bestError = err
 
                 # Save model
+                file = open(SAVE_MODEL, 'wb')
+                [layer.SaveModel(file) for layer in Layers]
+                file.close()
 
         if (patience < iter):
             print ('Early stopping !')
@@ -262,10 +283,6 @@ def evaluateAlexNet():
             break
 
     endTime = timeit.default_timer()
-    # print(('Optimization complete. Best validation score of %f %% '
-    #        'obtained at iteration %i, with test performance %f %%') %
-    #       (best_error * 100., best_iter + 1, test_score * 100.))
-    # print(('The code for file ran for %.2fm' % ((end_time - start_time) / 60.)), file=sys.stderr)
 
 
 if __name__ == "__main__":
