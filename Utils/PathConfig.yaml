@@ -12,3 +12,5 @@ TRAIN_DATA_FILENAME:         './dataset_metadata/train.txt'
 VALID_DATA_FILENAME:         './dataset_metadata/valid.txt'
 TEST_DATA_FILENAME:          './dataset_metadata/test.txt'
 
+# SYNSETS
+SYNSETS:    'synsets.txt'
