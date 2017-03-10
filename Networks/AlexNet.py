@@ -1,6 +1,7 @@
 from __future__ import print_function
 import yaml
 import timeit
+import os
 import cPickle
 import Utils.CostFHelper as CostFHelper
 from Utils.DataHelper import *
@@ -233,6 +234,12 @@ def evaluateAlexNet():
     ####################################
     #       Training models            #
     ####################################
+    # Load old model
+    if os.path.isfile(SAVE_MODEL):
+        file = open(SAVE_MODEL, 'wb')
+        [layer.LoadModel(file) for layer in Layers]
+        file.close()
+
     # Learning rate
     dynamicLearningRate = LEARNING_RATE
 
@@ -263,12 +270,11 @@ def evaluateAlexNet():
             err = 0; numValidSamples = 0; validIter = 0
 
             validStart = timeit.default_timer()
-            while epochValid == 0:
+            while epochValid == Dataset.EpochValid:
                 validIter += 1
                 [subData, labels] = Dataset.NextValidBatch(BATCH_SIZE)
                 err += testFunc(subData, labels)
                 numValidSamples += BATCH_SIZE
-                epochValid = Dataset.EpochValid
                 if validIter % VISUALIZE_FREQUENCY == 0:
                     print ('     Iterations = %d, NumValidSamples = %d' % (validIter, numValidSamples))
             err /= numValidSamples
