@@ -99,7 +99,7 @@ def evaluateAlexNet():
     convPoolLayer1 = ConvPoolLayer(
         rng         = rng,
         input       = convPoolLayer0Output,
-        inputShape  = (BATCH_SIZE, 96, 55, 55),
+        inputShape  = (BATCH_SIZE, 96, 27, 27),
         filterShape = (256, 96, 5, 5),
         borderMode  = 2,
         poolingShape = (2, 2)
@@ -111,7 +111,7 @@ def evaluateAlexNet():
     convPoolLayer2 = ConvPoolLayer(
         rng         = rng,
         input       = convPoolLayer1Output,
-        inputShape  = (BATCH_SIZE, 256, 27, 27),
+        inputShape  = (BATCH_SIZE, 256, 13, 13),
         filterShape = (384, 256, 3, 3),
         borderMode  = 1
     )
@@ -185,14 +185,15 @@ def evaluateAlexNet():
     errFunc = CostFHelper.Error(Output, Y)
 
     # List of params from model
-    params = convPoolLayer0Params + \
-             convPoolLayer1Params + \
-             convPoolLayer2Params + \
-             convPoolLayer3Params + \
-             convPoolLayer4Params + \
-             hidLayer0Params + \
+    params = hidLayer2Params + \
              hidLayer1Params + \
-             hidLayer2Params
+             hidLayer0Params + \
+             convPoolLayer4Params + \
+             convPoolLayer3Params + \
+             convPoolLayer2Params + \
+             convPoolLayer1Params + \
+             convPoolLayer0Params
+
     # Define gradient
     grads = T.grad(costFunc, params)
     # Updates function
@@ -237,7 +238,7 @@ def evaluateAlexNet():
         if (iter % VISUALIZE_FREQUENCY == 0):
             print('Epoch = %d, iteration = %d, cost = %f' % (epochTrain, iter, cost))
 
-        if (iter % VALIDATION_FREQUENCY == 10):
+        if (iter % VALIDATION_FREQUENCY == 0):
             print('Validate model....')
             epochValid = Dataset.EpochValid
             err = 0; numValidSamples = 0
