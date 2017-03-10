@@ -59,7 +59,7 @@ class DatasetHelper:
         lastIndex = self.IndexTrain
         if (self.IndexTrain + batchSize >= self.AllTrainData.__len__()):
             listSample = self.AllTrainData[self.IndexTrain : self.AllTrainData.__len__()]
-            listSample.append(self.AllTrainData[0 : batchSize - (self.AllTrainData.__len__() - self.IndexTrain)])
+            listSample.extend(self.AllTrainData[0 : batchSize - (self.AllTrainData.__len__() - self.IndexTrain)])
             self.IndexTrain = batchSize - (self.AllTrainData.__len__() - self.IndexTrain)
         else:
             listSample = self.AllTrainData[self.IndexTrain : self.IndexTrain + batchSize]
@@ -83,7 +83,7 @@ class DatasetHelper:
         lastIndex = self.IndexValid
         if (self.IndexValid + batchSize >= self.AllValidData.__len__()):
             listSample = self.AllValidData[self.IndexValid : self.AllValidData.__len__()]
-            listSample.append(self.AllValidData[0 : batchSize - (self.AllValidData.__len__() - self.IndexValid)])
+            listSample.extend(self.AllValidData[0 : batchSize - (self.AllValidData.__len__() - self.IndexValid)])
             self.IndexValid = batchSize - (self.AllValidData.__len__() - self.IndexValid)
         else:
             listSample = self.AllValidData[self.IndexValid : self.IndexValid + batchSize]
@@ -105,7 +105,7 @@ class DatasetHelper:
         lastIndex = self.IndexTest
         if (self.IndexTest + batchSize >= self.AllTestData.__len__()):
             listSample = self.AllTestData[self.IndexTest : self.AllTestData.__len__()]
-            listSample.append(self.AllTestData[0 : batchSize - (self.AllTestData.__len__() - self.IndexTest)])
+            listSample.extend(self.AllTestData[0 : batchSize - (self.AllTestData.__len__() - self.IndexTest)])
             self.IndexTest = batchSize - (self.AllTestData.__len__() - self.IndexTest)
         else:
             listSample = self.AllTestData[self.IndexTest : self.IndexTest + batchSize]
