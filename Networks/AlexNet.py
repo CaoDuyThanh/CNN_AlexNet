@@ -19,7 +19,7 @@ SAVE_MODEL          = paths['SAVE_MODEL']
 
 # OTHER SETTINGS
 VALIDATION_FREQUENCY  = 2500
-VISUALIZE_FREQUENCY   = 50
+VISUALIZE_FREQUENCY   = 10
 
 # TRAINING PARAMETERS
 NUM_ITERATION = 20000
@@ -54,6 +54,7 @@ def loadMeanImage():
     meanImage = meanImage[15 : 15 + 227, 15 : 15 + 227, :]
     meanImage = theano.shared(meanImage, borrow = True)
     MeanImage = meanImage.dimshuffle('x', 2, 0, 1)
+    MeanImage = MeanImage / 255.0   # Normalize image to 0 - 1
     file.close()
 
 def evaluateAlexNet():
@@ -90,7 +91,8 @@ def evaluateAlexNet():
         inputShape  = (BATCH_SIZE, 3, 227, 227),
         filterShape = (96, 3, 11, 11),
         subsample   = (4, 4),
-        poolingShape = (2, 2)
+        poolingShape = (2, 2),
+        activation  = T.nnet.relu
     )
     convPoolLayer0Params = convPoolLayer0.Params
     convPoolLayer0Output = convPoolLayer0.Output
@@ -102,7 +104,8 @@ def evaluateAlexNet():
         inputShape  = (BATCH_SIZE, 96, 27, 27),
         filterShape = (256, 96, 5, 5),
         borderMode  = 2,
-        poolingShape = (2, 2)
+        poolingShape = (2, 2),
+        activation  = T.nnet.relu
     )
     convPoolLayer1Params = convPoolLayer1.Params
     convPoolLayer1Output = convPoolLayer1.Output
@@ -113,7 +116,8 @@ def evaluateAlexNet():
         input       = convPoolLayer1Output,
         inputShape  = (BATCH_SIZE, 256, 13, 13),
         filterShape = (384, 256, 3, 3),
-        borderMode  = 1
+        borderMode  = 1,
+        activation  = T.nnet.relu
     )
     convPoolLayer2Params = convPoolLayer2.Params
     convPoolLayer2Output = convPoolLayer2.Output
@@ -124,7 +128,8 @@ def evaluateAlexNet():
         input       = convPoolLayer2Output,
         inputShape  = (BATCH_SIZE, 384, 13, 13),
         filterShape = (384, 384, 3, 3),
-        borderMode  = 1
+        borderMode  = 1,
+        activation  = T.nnet.relu
     )
     convPoolLayer3Params = convPoolLayer3.Params
     convPoolLayer3Output = convPoolLayer3.Output
@@ -136,7 +141,8 @@ def evaluateAlexNet():
         inputShape  = (BATCH_SIZE, 384, 13, 13),
         filterShape = (256, 384, 3, 3),
         borderMode  = 1,
-        poolingShape = (2, 2)
+        poolingShape = (2, 2),
+        activation  = T.nnet.relu
     )
     convPoolLayer4Params = convPoolLayer4.Params
     convPoolLayer4Output = convPoolLayer4.Output
@@ -148,7 +154,7 @@ def evaluateAlexNet():
         input      = convPoolLayer4OutputRes,
         numIn      = 256 * 6 * 6,
         numOut     = 4096,
-        activation = T.nnet.sigmoid
+        activation = T.nnet.relu
     )
     hidLayer0Params = hidLayer0.Params
     hidLayer0Output = hidLayer0.Output
@@ -159,7 +165,7 @@ def evaluateAlexNet():
         input      = hidLayer0Output,
         numIn      = 4096,
         numOut     = 4096,
-        activation = T.nnet.sigmoid
+        activation = T.nnet.relu
     )
     hidLayer1Params = hidLayer1.Params
     hidLayer1Output = hidLayer1.Output
@@ -205,10 +211,12 @@ def evaluateAlexNet():
     # Define gradient
     grads = T.grad(costFunc, params)
     # Updates function
-    updates = [
-        (param, param - LearningRate * grad)
-        for (param, grad) in zip(params, grads)
-        ]
+    updates = []
+    for (param, grad) in zip(params, grads):
+        previousStep = theano.shared(param.get_value() * 0., broadcastable=param.broadcastable)
+        step = MOMENTUM * previousStep - LearningRate * grad
+        updates.append((previousStep, step))
+        updates.append((param, param + step))
 
     # Train model
     trainFunc = theano.function(
@@ -250,7 +258,7 @@ def evaluateAlexNet():
             print('Epoch = %d, iteration = %d, cost = %f. Time remain = %f' % (epochTrain, iter, cost, (timeVisualize - oldTimeVisualize) / 60. * (NUM_ITERATION - iter) / VISUALIZE_FREQUENCY))
 
         if (iter % VALIDATION_FREQUENCY == 0):
-            print('Validate model....')
+            print('     Validate model....')
             epochValid = Dataset.EpochValid
             err = 0; numValidSamples = 0; validIter = 0
 
@@ -265,7 +273,7 @@ def evaluateAlexNet():
                     print ('     Iterations = %d, NumValidSamples = %d' % (validIter, numValidSamples))
             err /= numValidSamples
             validEnd = timeit.default_timer()
-            print('Validation complete! Time validation = %f mins. Error = %f (previous best error = %f)' % ((validEnd - validStart) / 60., err, bestError))
+            print('     Validation complete! Time validation = %f mins. Error = %f (previous best error = %f)' % ((validEnd - validStart) / 60., err, bestError))
 
             if (err < bestError):
                 if (err < bestError * IMPROVEMENT_THRESHOLD):
