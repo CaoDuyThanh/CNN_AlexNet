@@ -1,6 +1,8 @@
 import theano
 import theano.tensor as T
 import numpy
+import cPickle
+import pickle
 from theano.tensor.nnet import conv2d
 from theano.tensor.signal.pool import pool_2d
 
@@ -69,3 +71,8 @@ class ConvPoolLayer:
 
         self.Params = [self.W]
 
+    def LoadModel(self, file):
+        [param.set_value(cPickle.load(file), borrow=True) for param in self.Params]
+
+    def SaveModel(self, file):
+        [pickle.dump(param.get_value(borrow = True), file, -1) for param in self.Params]

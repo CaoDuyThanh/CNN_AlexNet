@@ -1,5 +1,7 @@
 import theano
 import numpy
+import pickle
+import cPickle
 import theano.tensor as T
 
 class HiddenLayer:
@@ -53,3 +55,9 @@ class HiddenLayer:
 
         self.Params = [self.W, self.b]
         self.Output = self.Activation(T.dot(self.Input, self.W) + self.b)
+
+    def LoadModel(self, file):
+        [param.set_value(cPickle.load(file), borrow=True) for param in self.Params]
+
+    def SaveModel(self, file):
+        [pickle.dump(param.get_value(borrow = True), file, -1) for param in self.Params]
