@@ -35,7 +35,7 @@ class DatasetHelper:
             im = im[idx : idx + 227, idy : idy + 227, :]
             data.append(im)
             labels.append(label)
-        data = numpy.asarray(data, dtype = theano.config.floatX)
+        data = numpy.asarray(data, dtype = theano.config.floatX) / 255.         # Normalize image to 0 - 1
         return [data, labels]
 
     def loadDataFromFile(self, path):
