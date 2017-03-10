@@ -56,18 +56,19 @@ class ConvPoolLayer:
             filter_shape = self.FilterShape,
             subsample    = self.Subsample,
             border_mode  = self.BorderMode
-
         )
+        self.Output = convLayer
+
+        if self.Activation is not None:
+            self.Output = self.Activation(self.Output)
 
         if self.PoolingShape is not None:
             poolLayer = pool_2d(
-                input         = convLayer,
+                input         = self.Output,
                 ds            = self.PoolingShape,
                 ignore_border = True
             )
             self.Output = poolLayer
-        else:
-            self.Output = convLayer
 
         self.Params = [self.W]
 
