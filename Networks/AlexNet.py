@@ -24,7 +24,8 @@ VISUALIZE_FREQUENCY   = 10
 
 # TRAINING PARAMETERS
 NUM_ITERATION = 20000
-LEARNING_RATE = 0.005
+LEARNING_RATE = 0.01
+LEARNING_RATE_UPDATE = 10000
 BATCH_SIZE    = 64
 
 # MOMENTUM PARAMETERS
@@ -236,7 +237,7 @@ def evaluateAlexNet():
     ####################################
     # Load old model
     if os.path.isfile(SAVE_MODEL):
-        file = open(SAVE_MODEL, 'wb')
+        file = open(SAVE_MODEL)
         [layer.LoadModel(file) for layer in Layers]
         file.close()
 
@@ -259,6 +260,9 @@ def evaluateAlexNet():
         # Train model
         cost = trainFunc(subData, labels, dynamicLearningRate)
 
+        if (iter % LEARNING_RATE_UPDATE == 0):
+            dynamicLearningRate /= 2.0
+
         if (iter % VISUALIZE_FREQUENCY == 0):
             oldTimeVisualize = timeVisualize
             timeVisualize = timeit.default_timer()
@@ -277,7 +281,7 @@ def evaluateAlexNet():
                 numValidSamples += BATCH_SIZE
                 if validIter % VISUALIZE_FREQUENCY == 0:
                     print ('     Iterations = %d, NumValidSamples = %d' % (validIter, numValidSamples))
-            err /= numValidSamples
+            err /= validIter
             validEnd = timeit.default_timer()
             print('     Validation complete! Time validation = %f mins. Error = %f (previous best error = %f)' % ((validEnd - validStart) / 60., err, bestError))
 
@@ -290,11 +294,12 @@ def evaluateAlexNet():
                 file = open(SAVE_MODEL, 'wb')
                 [layer.SaveModel(file) for layer in Layers]
                 file.close()
+                print('Save model!')
 
-        if (patience < iter):
-            print ('Early stopping !')
-            print('Epoch = %d, iteration = %d, cost = %f' % (epochTrain, iter, cost))
-            break
+        # if (patience < iter):
+        #     print ('Early stopping !')
+        #     print('Epoch = %d, iteration = %d, cost = %f' % (epochTrain, iter, cost))
+        #     break
 
     endTime = timeit.default_timer()
 
