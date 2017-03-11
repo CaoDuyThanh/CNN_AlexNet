@@ -42,7 +42,7 @@ file.close()
 def FindLabelFromSynset(folderName):
     for idx in range(allSynsets.__len__()):
         if allSynsets[idx][0] == folderName:
-            return idx + 1
+            return idx
 
 
 ################################
@@ -90,7 +90,7 @@ file.close()
 # Save metadata to text
 file = open(VALID_DATA_FILENAME, 'wb')
 for idx in range(len(allValidFiles)):
-    file.write('%s %d \n' % (allValidFiles[idx], allValidFilesLabelNumber[idx]))
+    file.write('%s %d \n' % (allValidFiles[idx], allValidFilesLabelNumber[idx] - 1))
 file.close()
 
 ################################
