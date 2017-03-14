@@ -2,7 +2,6 @@ from __future__ import print_function
 import yaml
 import timeit
 import os
-import cPickle
 import Utils.CostFHelper as CostFHelper
 from Utils.DataHelper import *
 from Layers.HiddenLayer import *
@@ -19,13 +18,12 @@ TEST_DATA_FILENAME  = paths['TEST_DATA_FILENAME']
 SAVE_MODEL          = paths['SAVE_MODEL']
 
 # OTHER SETTINGS
-VALIDATION_FREQUENCY  = 2500
+VALIDATION_FREQUENCY  = 5000
 VISUALIZE_FREQUENCY   = 10
 
 # TRAINING PARAMETERS
-NUM_ITERATION = 20000
+NUM_ITERATION = 700000
 LEARNING_RATE = 0.01
-LEARNING_RATE_UPDATE = 10000
 BATCH_SIZE    = 64
 
 # ADAM PARAMETERS
