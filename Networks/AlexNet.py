@@ -28,8 +28,10 @@ LEARNING_RATE = 0.01
 LEARNING_RATE_UPDATE = 10000
 BATCH_SIZE    = 64
 
-# MOMENTUM PARAMETERS
-MOMENTUM = 0.5
+# ADAM PARAMETERS
+BETA1 = 0.9
+BETA2 = 0.999
+DELTA = 0.000001
 
 # EARLY STOPPING PARAMETERS
 PATIENCE              = 1000
@@ -215,9 +217,18 @@ def evaluateAlexNet():
     # Updates function
     updates = []
     for (param, grad) in zip(params, grads):
-        previousStep = theano.shared(param.get_value() * 0., broadcastable=param.broadcastable)
-        step = MOMENTUM * previousStep - LearningRate * grad
-        updates.append((previousStep, step))
+        mt = theano.shared(param.get_value() * 0., broadcastable = param.broadcastable)
+        vt = theano.shared(param.get_value() * 0., broadcastable = param.broadcastable)
+
+        newMt = BETA1 * mt + (1 - BETA1) * grad
+        newVt = BETA2 * vt + (1 - BETA2) * T.sqr(grad)
+
+        tempMt = newMt / (1 - BETA1)
+        tempVt = newVt / (1 - BETA2)
+
+        step = - LearningRate * tempMt / (T.sqrt(tempVt) + DELTA)
+        updates.append((mt, newMt))
+        updates.append((vt, newVt))
         updates.append((param, param + step))
 
     # Train model
@@ -253,21 +264,6 @@ def evaluateAlexNet():
     startTime = timeit.default_timer()
     timeVisualize = timeit.default_timer()
     for iter in range(NUM_ITERATION):
-        # Load data
-        [subData, labels] = Dataset.NextTrainBatch(BATCH_SIZE)
-        epochTrain = Dataset.EpochTrain
-
-        # Train model
-        cost = trainFunc(subData, labels, dynamicLearningRate)
-
-        if (iter % LEARNING_RATE_UPDATE == 0):
-            dynamicLearningRate /= 2.0
-
-        if (iter % VISUALIZE_FREQUENCY == 0):
-            oldTimeVisualize = timeVisualize
-            timeVisualize = timeit.default_timer()
-            print('Epoch = %d, iteration = %d, cost = %f. Time remain = %f' % (epochTrain, iter, cost, (timeVisualize - oldTimeVisualize) / 60. * (NUM_ITERATION - iter) / VISUALIZE_FREQUENCY))
-
         if (iter % VALIDATION_FREQUENCY == 0):
             print('     Validate model....')
             epochValid = Dataset.EpochValid
@@ -296,7 +292,20 @@ def evaluateAlexNet():
                 file.close()
                 print('Save model!')
 
-        # if (patience < iter):
+        # Load data
+        [subData, labels] = Dataset.NextTrainBatch(BATCH_SIZE)
+        epochTrain = Dataset.EpochTrain
+
+        # Train model
+        cost = trainFunc(subData, labels, dynamicLearningRate)
+
+        if (iter % VISUALIZE_FREQUENCY == 0):
+            oldTimeVisualize = timeVisualize
+            timeVisualize = timeit.default_timer()
+            print('Epoch = %d, iteration = %d, cost = %f. Time remain = %f' % (epochTrain, iter, cost, (
+            timeVisualize - oldTimeVisualize) / 60. * (NUM_ITERATION - iter) / VISUALIZE_FREQUENCY))
+
+                    # if (patience < iter):
         #     print ('Early stopping !')
         #     print('Epoch = %d, iteration = %d, cost = %f' % (epochTrain, iter, cost))
         #     break
