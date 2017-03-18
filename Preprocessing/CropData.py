@@ -15,12 +15,13 @@ VALID_DATA_FILENAME         = paths['VALID_DATA_FILENAME']
 TEST_DATA_FILENAME          = paths['TEST_DATA_FILENAME']
 
 def toRGB(imageIn):
-    width, height = imageIn.size
-    image = numpy.zeros((width, height, 3), dtype = 'uint8')
-    image[:, : , 0] = imageIn
-    image[:, : , 1] = imageIn
-    image[:, : , 2] = imageIn
-    image = Image.fromarray(image)
+    # width, height = imageIn.size
+    # image = numpy.zeros((width, height, 3), dtype = 'uint8')
+    # image[:, : , 0] = imageIn
+    # image[:, : , 1] = imageIn
+    # image[:, : , 2] = imageIn
+    # image = Image.fromarray(image)
+    image = imageIn.convert('RGB')
     return image
 
 ################################
@@ -69,7 +70,7 @@ for trainData in allTrainData:
             int(width / 2 - 128) + 256,
             256
         ))
-    if image.mode == 'L':
+    if image.mode != 'RGB':
         image = toRGB(image)
     image.save(imagePath)
 
@@ -107,6 +108,8 @@ for validData in allValidData:
             int(width / 2 - 128) + 256,
             256
         ))
+    if image.mode != 'RGB':
+        image = toRGB(image)
     image.save(imagePath)
 
 ################################
@@ -143,6 +146,8 @@ for testData in allTestData:
             int(width / 2 - 128) + 256,
             256
         ))
+    if image.mode != 'RGB':
+        image = toRGB(image)
     image.save(imagePath)
 
 
