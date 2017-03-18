@@ -9,6 +9,7 @@ Caffe style
 '''
 
 import yaml
+import pickle
 from pylab import *
 from PIL import Image
 from Utils.DataHelper import *
