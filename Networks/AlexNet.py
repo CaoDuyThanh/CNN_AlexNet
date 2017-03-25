@@ -3,6 +3,7 @@ import yaml
 import timeit
 import os
 import Utils.CostFHelper as CostFHelper
+from theano.tensor.shared_randomstreams import RandomStreams
 from Utils.DataHelper import *
 from Layers.HiddenLayer import *
 from Layers.ConvPoolLayer import *
@@ -45,7 +46,8 @@ def prepareDataset():
     Dataset = DatasetHelper(
         trainFilePath = TRAIN_DATA_FILENAME,
         validFilePath = VALID_DATA_FILENAME,
-        testFilePath  = TEST_DATA_FILENAME
+        testFilePath  = TEST_DATA_FILENAME,
+        batchSize     = BATCH_SIZE
     )
 
 def loadMeanImage():
@@ -78,6 +80,7 @@ def evaluateAlexNet():
     '''
     # Create random state
     rng = numpy.random.RandomState(12345)
+    theanoRng = RandomStreams(rng.randint(2 ** 30))
 
     # Create shared variable for input
     LearningRate = T.fscalar('LearningRate')
@@ -153,10 +156,12 @@ def evaluateAlexNet():
     # Hidden layer 0
     hidLayer0 = HiddenLayer(
         rng        = rng,
+        theanoRng  = theanoRng,
         input      = convPoolLayer4OutputRes,
         numIn      = 256 * 6 * 6,
         numOut     = 4096,
-        activation = T.nnet.relu
+        activation = T.nnet.relu,
+        dropout    = 0.5
     )
     hidLayer0Params = hidLayer0.Params
     hidLayer0Output = hidLayer0.Output
@@ -164,10 +169,12 @@ def evaluateAlexNet():
     # Hidden layer 1
     hidLayer1 = HiddenLayer(
         rng        = rng,
+        theanoRng  = theanoRng,
         input      = hidLayer0Output,
         numIn      = 4096,
         numOut     = 4096,
-        activation = T.nnet.relu
+        activation = T.nnet.relu,
+        dropout    = 0.5
     )
     hidLayer1Params = hidLayer1.Params
     hidLayer1Output = hidLayer1.Output
@@ -175,6 +182,7 @@ def evaluateAlexNet():
     # Hidden layer 2
     hidLayer2 = HiddenLayer(
         rng        = rng,
+        theanoRng  = theanoRng,
         input      = hidLayer1Output,
         numIn      = 4096,
         numOut     = 1000,
@@ -264,13 +272,13 @@ def evaluateAlexNet():
     for iter in range(NUM_ITERATION):
         if (iter % VALIDATION_FREQUENCY == 0):
             print('     Validate model....')
-            epochValid = Dataset.EpochValid
+            epochValid = Dataset.EpochValid; currEpochValid = epochValid
             err = 0; numValidSamples = 0; validIter = 0
 
             validStart = timeit.default_timer()
             while epochValid == Dataset.EpochValid:
                 validIter += 1
-                [subData, labels] = Dataset.NextValidBatch(BATCH_SIZE)
+                subData, labels, currEpochValid, idx = Dataset.NextValidBatch()
                 err += testFunc(subData, labels)
                 numValidSamples += BATCH_SIZE
                 if validIter % VISUALIZE_FREQUENCY == 0:
@@ -291,8 +299,7 @@ def evaluateAlexNet():
                 print('Save model!')
 
         # Load data
-        [subData, labels] = Dataset.NextTrainBatch(BATCH_SIZE)
-        epochTrain = Dataset.EpochTrain
+        subData, labels, epochTrain, idx = Dataset.NextTrainBatch()
 
         # Train model
         cost = trainFunc(subData, labels, dynamicLearningRate)
